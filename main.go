@@ -39,10 +39,6 @@ func main() {
 
 	r.Route(basePath, api.Router)
 
-	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("welcome"))
-	})
-
 	log.WithField("category", "general").Info("Server started: http://0.0.0.0:5000")
 
 	log.Fatal(http.ListenAndServe(":5000", r))
