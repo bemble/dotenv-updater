@@ -7,6 +7,9 @@ RUN apk add --no-cache \
 # Force the go compiler to use modules
 ENV GO111MODULE=on
 
+ARG APP_VERSION
+ENV APP_VERSION=${APP_VERSION}
+
 ADD . /app
 WORKDIR /app
 RUN CGO_ENABLED=0 GOOS=linux go build -a -o dotenv-updater .
@@ -24,4 +27,4 @@ COPY --from=app-builder /app/dotenv-updater /app/
 
 ENTRYPOINT ["/app/dotenv-updater"]
 
-EXPOSE 3000
+EXPOSE 5000

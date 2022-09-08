@@ -97,6 +97,7 @@ docker run -v "portainer/compose/2/stack.env:/app/data/.env" -p5000:5000 -e API_
 
 Don't forget the `X-Api-Key` header!
 
+- `[GET] /status`: get status of the app
 - `[POST] /env/{VAR_NAME}`: set `VAR_NAME` variable value
   
   Body:

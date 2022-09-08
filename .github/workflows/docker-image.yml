@@ -46,17 +46,28 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute app environment and docker tags
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ github.repository_owner }}/${{ github.event.repository.name }}
+            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}
+          tags: |
+            type=semver,pattern=v{{version}},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern=v{{major}}.{{minor}},enable=${{ github.event_name == 'release' }}
+            type=semver,pattern=v{{major}},enable=${{ github.event_name == 'release' }}
+            type=raw,value=latest,enable=${{ github.event_name == 'release' }}
+            type=raw,value=develop,enable=${{ github.event_name != 'release' }}
+            type=sha,enable=${{ github.event_name != 'release' }}
+
+      - name: App environment
         id: compute-vars
         run: |
           if [[ "${{ github.event_name }}" == "release" ]]; then
             echo "::set-output name=app-version::${{ github.event.release.tag_name }}"
-            echo "::set-output name=docker-tag1::latest"
-            echo "::set-output name=docker-tag2::${{ github.event.release.tag_name }}"
           else
             echo "::set-output name=app-version::${{ github.sha }}"
-            echo "::set-output name=docker-tag1::develop"
-            echo "::set-output name=docker-tag2::${{ github.sha }}"
           fi
 
       - name: Build and push
@@ -66,21 +77,12 @@ jobs:
           context: .
           platforms: linux/amd64,linux/arm/v6,linux/arm/v7
           push: true
-          tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.compute-vars.outputs.docker-tag1 }}
-            ghcr.io/${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.compute-vars.outputs.docker-tag2 }}
-            ${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.compute-vars.outputs.docker-tag1 }}
-            ${{ github.repository_owner }}/${{ github.event.repository.name }}:${{ steps.compute-vars.outputs.docker-tag2 }}
+          tags: ${{ steps.meta.outputs.tags }}
           build-args: |
             APP_VERSION=${{ steps.compute-vars.outputs.app-version }}
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
-  update-tag:
-    uses: sersoft-gmbh/running-release-tags-action@v2
-    needs: build
-    if: github.event_name == 'release'
 
   sync-description:
     name: Docker Hub - Sync description
