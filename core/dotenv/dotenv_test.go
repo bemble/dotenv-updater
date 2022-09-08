@@ -37,7 +37,7 @@ func TestSetVar(t *testing.T) {
 	}
 
 	if expectedContent != string(content) {
-		t.Fatalf("expected content %s, but got %s", expectedContent, content)
+		t.Fatalf("Expected content %s, but got %s", expectedContent, content)
 	}
 }
 
@@ -57,33 +57,15 @@ func TestUpdateVar(t *testing.T) {
 	}
 
 	if expectedContent != string(content) {
-		t.Fatalf("expected content %s, but got %s", expectedContent, content)
+		t.Fatalf("Expected content %s, but got %s", expectedContent, content)
 	}
 }
 
-func TestDeleteVar(t *testing.T) {
+func TestDeleteNotAllowed(t *testing.T) {
 	beforeTestCase()
 	defer afterTestCase()
 
 	DeleteVar(TEST_FILE, "VAR1")
-
-	expectedContent := "VAR2=\"bar\"\n"
-
-	content, err := os.ReadFile(TEST_FILE)
-
-	if err != nil {
-		panic(err)
-	}
-
-	if expectedContent != string(content) {
-		t.Fatalf("expected content %s, but got %s", expectedContent, content)
-	}
-}
-func TestDeleteNotSetVar(t *testing.T) {
-	beforeTestCase()
-	defer afterTestCase()
-
-	DeleteVar(TEST_FILE, "VAR_UNSET")
 
 	expectedContent := "VAR1=\"foo\"\nVAR2=\"bar\"\n"
 
@@ -94,6 +76,51 @@ func TestDeleteNotSetVar(t *testing.T) {
 	}
 
 	if expectedContent != string(content) {
-		t.Fatalf("expected content %s, but got %s", expectedContent, content)
+		t.Fatalf("Expected content %s, but got %s", expectedContent, content)
+	}
+}
+
+func TestDeleteVar(t *testing.T) {
+	beforeTestCase()
+	defer afterTestCase()
+
+	os.Setenv("DELETE_ALLOWED", "1")
+
+	DeleteVar(TEST_FILE, "VAR1")
+
+	os.Unsetenv("DELETE_ALLOWED")
+
+	expectedContent := "VAR2=\"bar\"\n"
+
+	content, err := os.ReadFile(TEST_FILE)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if expectedContent != string(content) {
+		t.Fatalf("Expected content %s, but got %s", expectedContent, content)
+	}
+}
+func TestDeleteNotSetVar(t *testing.T) {
+	beforeTestCase()
+	defer afterTestCase()
+
+	os.Setenv("DELETE_ALLOWED", "1")
+
+	DeleteVar(TEST_FILE, "VAR_UNSET")
+
+	os.Unsetenv("DELETE_ALLOWED")
+
+	expectedContent := "VAR1=\"foo\"\nVAR2=\"bar\"\n"
+
+	content, err := os.ReadFile(TEST_FILE)
+
+	if err != nil {
+		panic(err)
+	}
+
+	if expectedContent != string(content) {
+		t.Fatalf("Expected content %s, but got %s", expectedContent, content)
 	}
 }

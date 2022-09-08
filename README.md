@@ -73,6 +73,8 @@ docker run -v "portainer/compose/2/stack.env:/app/data/.env" -p5000:5000 -e API_
     environment:
       API_KEY: my-api-key
       BASE_PATH: "/updater"
+      DELETE_ALLOWED: 1
+      DEBUG: 1
     volumes:
       - "${PWD}/portainer/compose/2/stack.env:/app/data/.env"
       - /etc/localtime:/etc/localtime:ro
@@ -88,18 +90,23 @@ docker run -v "portainer/compose/2/stack.env:/app/data/.env" -p5000:5000 -e API_
 
 - `API_KEY`: api key used to make calls (default `CHANGE-IT-ASAP`)
 - `BASE_PATH`: web base path (default `/`)
-- `DEBUG`: web base path (default `/`)
+- `DELETE_ALLOWED`: allow delete vars (default: `false`, anything different of [`1`, `true` or `True`] will set it to `false`)
+- `DEBUG`: display debug info (default: `false`, anything different of [`1`, `true` or `True`] will set it to `false`)
 
 ## Using the API
 
 Don't forget the `X-Api-Key` header!
 
 - `[POST] /env/{VAR_NAME}`: set `VAR_NAME` variable value
+  
   Body:
 ```json
 {"value": "the new value"}
 ```
-- `[DELETE] /env/{VAR_NAME}`: delete `VAR_NAME`
+  Replies `204 - No Content` when OK
+- `[DELETE] /env/{VAR_NAME}`: delete `VAR_NAME` (if `DELETE_ALLOWED` is `false`, does nothing)
+  
+  Replies `204 - No Content` when OK
 
 ## Development
 
@@ -136,5 +143,5 @@ docker build . -f Dockerfile -t dotenv-updater
 
 ## TODO
 
-- [ ] disable `DELETE`
+- [X] disable `DELETE`
 - [ ] restrict update to given variables

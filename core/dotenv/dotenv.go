@@ -1,6 +1,7 @@
 package dotenv
 
 import (
+	"dotenv-updater/core/config"
 	"os"
 
 	log "github.com/sirupsen/logrus"
@@ -33,6 +34,11 @@ func SetVar(file string, name string, value string) error {
 }
 
 func DeleteVar(file string, name string) error {
+	if !config.IsDeleteAllowed() {
+		log.WithField("category", "dotenv").Debugf("Delete not allowed")
+		return nil
+	}
+
 	content, loadErr := os.ReadFile(file)
 	if loadErr != nil {
 		log.WithField("category", "dotenv").Debugf("Error loading %s file: %s", file, loadErr.Error())
